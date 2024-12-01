@@ -1,14 +1,15 @@
 import os
 from pathlib import Path
 import wandb
-from loadotenv import load_env
+#from loadotenv import load_env  # This will be removed for the GCP deployment
 import torch
 from torchvision.models import resnet18, ResNet
 from torch import nn
-from torchvision import transforms
+from torchvision.transforms import v2 as transforms
 
-
-load_env()
+CATEGORIES = ["freshapple", "freshbanana", "freshorange",
+               "rottenapple", "rottenbanana", "rottenorange"]
+#load_env() # This will be removed for the GCP deployment
 wandb_api_key = os.environ.get('WANDB_API_KEY')
 
 MODELS_DIR = 'models'
@@ -54,5 +55,15 @@ def load_model() -> ResNet:
     model.eval()
     return model
 
+def load_transforms() -> transforms.Compose:
+    """This function returns the transforms used in the training process."""
+    return transforms.Compose([
+        transforms.Resize(256),
+        transforms.CenterCrop(224),
+        transforms.ToImage(),
+        transforms.ToDtype(torch.float32, scale=True),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                              std=[0.229, 0.224, 0.225])
+    ])
 
-print(load_model())
+
